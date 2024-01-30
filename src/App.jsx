@@ -7,9 +7,11 @@ function App() {
   const [timeLeft, setTimeLeft] = useState(25000);
   const [timeLeftFormatted, setTimeLeftFormatted] = useState("25:00");
   const [timerRunning, setTimerRunning] = useState(false);
+  const [timerActive, setTimerActive] = useState(false);
   const [isBreak, setIsBreak] = useState(false);
   const [now, setNow] = useState(null);
   const [startTime, setStartTime] = useState(null);
+  const [stopTime, setStopTime] = useState(null);
 
   const timeRemainingRef = useRef(null);
 
@@ -40,8 +42,14 @@ function App() {
 
   function start() {
     setTimerRunning(true);
-    setStartTime(Date.now());
-    setNow(Date.now());
+    setTimerActive(true);
+    if (timerActive) {
+      setStartTime(Date.now() - (stopTime - startTime));
+      setNow(Date.now());
+    } else {
+      setStartTime(Date.now());
+      setNow(Date.now());
+    }
 
     clearInterval(timeRemainingRef.current);
     timeRemainingRef.current = setInterval(() => {
@@ -52,20 +60,42 @@ function App() {
 
   function stop() {
     clearInterval(timeRemainingRef.current);
+    setStopTime(Date.now());
     setTimerRunning(false);
   }
 
-  const sessionTimeFormatted = formatTime(sessionLength);
+  function timerEnded() {
+    setIsBreak(!isBreak);
+    if (!isBreak) {
+    } else {
+    }
+  }
+
+  const sessionTimeFormatted = isBreak
+    ? formatTime(breakLength)
+    : formatTime(sessionLength);
   const differential = now - startTime;
   const testTimeLeft = sessionTimeFormatted - differential;
-  const minutes = Math.round(testTimeLeft / 60000);
-  const seconds = Math.round((testTimeLeft % 60000) / 1000);
-  const testTimeLeftFormatted = `${pad(minutes)}:${pad(seconds)}`;
+  let testTimeLeftFormatted = "25:00";
+
+  if (testTimeLeft <= 0) {
+    timerEnded();
+  } else {
+    testTimeLeftFormatted = processTime();
+  }
+  function processTime() {
+    const minutes = Math.floor(testTimeLeft / 60000);
+    const seconds = Math.round((testTimeLeft % 60000) / 1000);
+    return `${pad(minutes)}:${pad(seconds)}`;
+  }
 
   function reset() {
-    setTimerRunning(false);
+    stop();
     setBreakLength(5);
     setSessionLength(25);
+    setStopTime(null);
+    setStartTime(null);
+    setNow(null);
   }
 
   return (
@@ -97,7 +127,7 @@ function App() {
         </button>
       </div>
       <div>
-        <span id="timer-label">Session </span>
+        <span id="timer-label">{isBreak ? `Break Time!` : `Session`} </span>
         <span id="time-left">{testTimeLeftFormatted}</span>
       </div>
       <div>
