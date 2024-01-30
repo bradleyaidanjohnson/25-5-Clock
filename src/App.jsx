@@ -14,6 +14,10 @@ function App() {
   const [stopTime, setStopTime] = useState(null);
 
   const timeRemainingRef = useRef(null);
+  const alarmElement = useRef(null);
+
+  const alarmSoundUrl =
+    "https://voiceoff.com/store/media/cms/soundsamples/MP3E010SNX.mp3";
 
   function formatTime(unformattedTime) {
     const formattedTime = unformattedTime * 60000;
@@ -43,7 +47,7 @@ function App() {
   function start() {
     setTimerRunning(true);
     setTimerActive(true);
-    if (timerActive) {
+    if (timerActive && testTimeLeft > 0) {
       setStartTime(Date.now() - (stopTime - startTime));
       setNow(Date.now());
     } else {
@@ -67,19 +71,28 @@ function App() {
   function timerEnded() {
     setIsBreak(!isBreak);
     if (!isBreak) {
+      alarmElement.current.play();
+      setTimerActive(false);
+      start();
     } else {
+      alarmElement.current.play();
+      setTimerActive(false);
+      start();
     }
   }
 
-  const sessionTimeFormatted = isBreak
+  const currentTimeFormatted = isBreak
     ? formatTime(breakLength)
     : formatTime(sessionLength);
   const differential = now - startTime;
-  const testTimeLeft = sessionTimeFormatted - differential;
+  const testTimeLeft = currentTimeFormatted - differential;
   let testTimeLeftFormatted = "25:00";
 
   if (testTimeLeft <= 0) {
-    timerEnded();
+    testTimeLeftFormatted = "00:00";
+    setTimeout(() => {
+      timerEnded();
+    }, 10);
   } else {
     testTimeLeftFormatted = processTime();
   }
@@ -96,6 +109,10 @@ function App() {
     setStopTime(null);
     setStartTime(null);
     setNow(null);
+    setIsBreak(false);
+    setTimerActive(false);
+    alarmElement.current.pause();
+    alarmElement.current.load();
   }
 
   return (
@@ -137,6 +154,7 @@ function App() {
         <button id="reset" onClick={reset}>
           Reset
         </button>
+        <audio ref={alarmElement} src={alarmSoundUrl} id="beep" />
       </div>
     </div>
   );
