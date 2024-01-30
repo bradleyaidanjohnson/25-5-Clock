@@ -18,6 +18,10 @@ function App() {
     return formattedTime;
   }
 
+  function pad(d) {
+    return d < 10 ? "0" + d.toString() : d.toString();
+  }
+
   function changeBreak(int) {
     if (breakLength + int > 0 && breakLength + int <= 60) {
       setBreakLength(breakLength + int);
@@ -43,7 +47,7 @@ function App() {
     timeRemainingRef.current = setInterval(() => {
       setNow(Date.now());
       setTimerRunning(true);
-    }, 50);
+    }, 1000);
   }
 
   function stop() {
@@ -54,9 +58,9 @@ function App() {
   const sessionTimeFormatted = formatTime(sessionLength);
   const differential = now - startTime;
   const testTimeLeft = sessionTimeFormatted - differential;
-  const minutes = Math.floor(testTimeLeft / 60000);
-  const seconds = Math.floor((testTimeLeft % 60000) / 1000);
-  const testTimeLeftFormatted = `${minutes}:${seconds}`;
+  const minutes = Math.round(testTimeLeft / 60000);
+  const seconds = Math.round((testTimeLeft % 60000) / 1000);
+  const testTimeLeftFormatted = `${pad(minutes)}:${pad(seconds)}`;
 
   function reset() {
     setTimerRunning(false);
